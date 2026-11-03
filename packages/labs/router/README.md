@@ -15,7 +15,25 @@ A router for Lit.
 
 ## Status
 
-This package requires either a native [`URLPattern`](https://developer.mozilla.org/en-US/docs/Web/API/URLPattern) implementation (which is currently only implemented in Chrome, Edge, and other Chromium browsers) or a URLPattern polyfill, like [`urlpattern-polyfill`](https://github.com/kenchris/urlpattern-polyfill).
+This package uses [`URLPattern`](https://developer.mozilla.org/en-US/docs/Web/API/URLPattern) to match routes. `URLPattern` is [Baseline 2025](https://developer.mozilla.org/en-US/docs/Web/API/URLPattern#browser_compatibility): it's available in current versions of Chrome, Edge, Firefox and Safari.
+
+### Supporting older browsers
+
+For browsers without a native `URLPattern`, load a polyfill such as [`urlpattern-polyfill`](https://github.com/kenchris/urlpattern-polyfill) before your first navigation. Importing the package installs `URLPattern` on `globalThis` only if it's missing:
+
+```ts
+// At the top of your app's entry point
+import 'urlpattern-polyfill';
+```
+
+To only download the polyfill when it's needed, import it dynamically before importing your app:
+
+```ts
+if (!('URLPattern' in globalThis)) {
+  await import('urlpattern-polyfill');
+}
+await import('./my-app.js');
+```
 
 ## Overview
 
@@ -57,7 +75,11 @@ The general shape of the API includes:
 
 ### Router
 
-A Router is a controller (a subclass of the Routes controller) for use at the top-level of an application. It's main purpose is to set up global `click` and `popstate` event listeners (which should be installed only once on a page). It can optionally contain route definitions as a convenience.
+A Router is a controller (a subclass of the Routes controller) for use at the top-level of an application. Its main purpose is to set up global `click` and `popstate` event listeners (which should be installed only once on a page). It can optionally contain route definitions as a convenience.
+
+When its host element connects, a Router also routes to the current URL, so the initial page renders without any extra code. A `Routes` controller doesn't do this on its own: it's navigated by a `Router` or `Routes` controller above it. If you use a `Routes` controller without a `Router` above it, call `goto(location.pathname)` yourself.
+
+Use only one Router on a page. Components nested inside it should use `Routes`, not another `Router`.
 
 It can be installed with no configuration:
 
