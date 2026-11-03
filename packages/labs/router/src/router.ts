@@ -7,8 +7,11 @@
 
 import {Routes} from './routes.js';
 
-// We cache the origin since it can't change
-const origin = location.origin || location.protocol + '//' + location.host;
+// The origin can't change, so cache it, but read it lazily so this module can
+// be imported in environments without a global `location` (like Node for SSR).
+let origin: string | undefined;
+const getOrigin = () =>
+  (origin ??= location.origin || location.protocol + '//' + location.host);
 
 /**
  * A root-level router that installs global event listeners to intercept
@@ -62,7 +65,7 @@ export class Router extends Routes {
     }
 
     const location = window.location;
-    if (anchor.origin !== origin) {
+    if (anchor.origin !== getOrigin()) {
       return;
     }
 
