@@ -10,6 +10,11 @@ import {Routes} from './routes.js';
 // We cache the origin since it can't change
 const origin = location.origin || location.protocol + '//' + location.host;
 
+// HTML anchors have string `href` and `target` properties; SVG anchors have
+// SVGAnimatedString ones.
+const getString = (value: string | SVGAnimatedString) =>
+  typeof value === 'string' ? value : value.baseVal;
+
 /**
  * A root-level router that installs global event listeners to intercept
  * navigation.
@@ -42,34 +47,38 @@ export class Router extends Routes {
       return;
     }
 
+    // Both HTML and SVG <a> elements have a localName of 'a'.
     const anchor = e
       .composedPath()
-      .find((n) => (n as HTMLElement).tagName === 'A') as
+      .find((n) => (n as Element).localName === 'a') as
       | HTMLAnchorElement
+      | SVGAElement
       | undefined;
     if (
       anchor === undefined ||
-      anchor.target !== '' ||
+      getString(anchor.target) !== '' ||
       anchor.hasAttribute('download') ||
       anchor.getAttribute('rel') === 'external'
     ) {
       return;
     }
 
-    const href = anchor.href;
+    const href = getString(anchor.href);
     if (href === '' || href.startsWith('mailto:')) {
       return;
     }
 
+    // SVG <a> hrefs aren't resolved for us, so resolve against the base URI.
+    const url = new URL(href, anchor.baseURI);
     const location = window.location;
-    if (anchor.origin !== origin) {
+    if (url.origin !== origin) {
       return;
     }
 
     e.preventDefault();
-    if (href !== location.href) {
-      window.history.pushState({}, '', href);
-      this.goto(anchor.pathname);
+    if (url.href !== location.href) {
+      window.history.pushState({}, '', url.href);
+      this.goto(url.pathname);
     }
   };
 

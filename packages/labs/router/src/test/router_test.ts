@@ -94,6 +94,52 @@ const canTest =
     assert.include(el.shadowRoot!.innerHTML, '<h2>Root</h2>');
   });
 
+  /**
+   * Dispatches a primary-button click on `node` and reports whether the
+   * router intercepted it (called preventDefault). The click's default action
+   * is always prevented afterwards so the test frame doesn't navigate.
+   */
+  const clickIsIntercepted = (win: Window, node: Element) => {
+    let intercepted = false;
+    // Added after the Router's own window listener, so it runs after it.
+    const listener = (e: Event) => {
+      intercepted = e.defaultPrevented;
+      e.preventDefault();
+    };
+    win.addEventListener('click', listener);
+    node.dispatchEvent(
+      new (win as typeof window).MouseEvent('click', {
+        bubbles: true,
+        composed: true,
+        cancelable: true,
+        button: 0,
+      })
+    );
+    win.removeEventListener('click', listener);
+    return intercepted;
+  };
+
+  test('SVG links are routed', async () => {
+    await loadTestModule('./router_test.html');
+    const el = container.contentDocument!.createElement(
+      'router-test-1'
+    ) as Test1;
+    const {contentWindow, contentDocument} = container;
+    contentWindow!.history.pushState({}, '', '/');
+    contentDocument!.body.append(el);
+    await el.updateComplete;
+
+    // Click the <text> inside the SVG <a>, like a user would.
+    const text = el.shadowRoot!.querySelector('#svg-link text')!;
+    assert.isTrue(clickIsIntercepted(contentWindow!, text));
+    assert.equal(contentWindow!.location.pathname, '/test1/svg');
+    await el.updateComplete;
+    assert.include(
+      stripExpressionComments(el.shadowRoot!.innerHTML),
+      '<h2>Test 1: svg</h2>'
+    );
+  });
+
   test('Nested routing', async () => {
     await loadTestModule('./router_test.html');
     const el = container.contentDocument!.createElement(
