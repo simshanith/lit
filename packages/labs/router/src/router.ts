@@ -66,6 +66,16 @@ export class Router extends Routes {
       return;
     }
 
+    if (
+      anchor.hash !== '' &&
+      anchor.pathname === location.pathname &&
+      anchor.search === location.search
+    ) {
+      // A link to a fragment of the current page. Let the browser scroll to
+      // the target and update the URL.
+      return;
+    }
+
     e.preventDefault();
     if (href !== location.href) {
       window.history.pushState({}, '', href);
