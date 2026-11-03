@@ -17,6 +17,10 @@ A router for Lit.
 
 This package requires either a native [`URLPattern`](https://developer.mozilla.org/en-US/docs/Web/API/URLPattern) implementation (which is currently only implemented in Chrome, Edge, and other Chromium browsers) or a URLPattern polyfill, like [`urlpattern-polyfill`](https://github.com/kenchris/urlpattern-polyfill).
 
+### TypeScript
+
+The type declarations use the global `URLPattern` type. TypeScript 6.0 and later include it in the `DOM` lib. With TypeScript 5.x you'll see `Cannot find name 'URLPattern'` unless you enable `skipLibCheck` or add types for it, for example by importing `urlpattern-polyfill`, which declares the global type.
+
 ## Overview
 
 `@lit-labs/router` is a component-oriented router API vended as reactive controllers. Routes are configured as part of component definitions, and integrated into the component lifecycle and rendering.
