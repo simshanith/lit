@@ -51,7 +51,8 @@ export class Router extends Routes {
       anchor === undefined ||
       anchor.target !== '' ||
       anchor.hasAttribute('download') ||
-      anchor.getAttribute('rel') === 'external'
+      // rel is a space-separated token list, like "external noopener"
+      (anchor.getAttribute('rel') ?? '').split(/\s+/).includes('external')
     ) {
       return;
     }

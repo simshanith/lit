@@ -64,6 +64,9 @@ export class Test1 extends LitElement {
       <a id="test1" href="/test1/abc">Test 1</a>
       <a id="child1" href="/child1/abc">Child 1</a>
       <a id="child2" href="/child2/xyz">Child 2</a>
+      <a id="external" rel="external noopener" href="/test1/external">
+        External
+      </a>
       ${this._router.outlet()}
     `;
   }
